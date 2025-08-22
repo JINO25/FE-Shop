@@ -10,7 +10,7 @@ export const Header = () => {
                     <div className="col-lg-3">
                         <div className="header__logo">
                             <a href="/">
-                                <img src="images/shop-logo.jpeg" alt="" className="w-[50px]" />
+                                <img src="/images/shop-logo.jpeg" alt="" className="w-[50px]" />
                             </a>
                         </div>
                     </div>

@@ -44,8 +44,8 @@ export function HomeShop() {
                                     <div className="filter__sort">
                                         <span>Sort By</span>
                                         <select>
-                                            <option value="0">Default</option>
-                                            <option value="0">Default</option>
+                                            <option value="ASC">Increase</option>
+                                            <option value="DES">Decrease</option>
                                         </select>
                                     </div>
                                 </div>
