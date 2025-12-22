@@ -1,6 +1,6 @@
 import React from "react";
 // import "../style.css"
-import { NavLink } from "react-router";
+import { Link, NavLink } from "react-router";
 import { useCart } from "../contexts/CartContext";
 
 export const Header = () => {
@@ -40,7 +40,7 @@ export const Header = () => {
                         </nav>
                     </div>
                     <div className="col-lg-3">
-                        <div className="header__cart">
+                        <div className="header__cart flex items-center justify-end">
                             <ul>
                                 <li><a href="#"><i className="fa fa-heart"></i> <span>1</span></a></li>
                                 <li className="relative group">
@@ -67,8 +67,8 @@ export const Header = () => {
                                                         className="w-14 h-14 object-cover border rounded"
                                                     />
 
-                                                    <div className="flex-1">
-                                                        <h5 className="text-sm font-medium leading-snug line-clamp-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <h5 className="text-sm font-medium leading-snug line-clamp-2 truncate">
                                                             {item.name}
                                                         </h5>
                                                         <span className="text-xs text-gray-500">
@@ -116,8 +116,25 @@ export const Header = () => {
                                 </li>
                             </ul>
                             <div className="header__auth">
-                                <NavLink to="/login" className="text-decoration-none">
-                                    <i className="fa fa-user"></i> Login</NavLink>
+                                {/* <NavLink to="/login" className="text-decoration-none">
+                                    <i className="fa fa-user"></i> Login</NavLink> */}
+                                <div className="flex items-center gap-2 relative group">
+                                    <img src="/images/shop-logo.jpeg" alt="user-logo"
+                                        className="w-[20px] h-[20px] object-cover" />
+                                    <span>Jino</span>
+                                    <div className="absolute right-0 top-full bg-white border rounded-md shadow-lg hidden group-hover:block z-50">
+                                        <div className="p-4 space-y-4 no-underline">
+                                            <div className="flex items-center gap-2">
+                                                <i className="fa fa-user"></i>
+                                                <Link to="/profile">Profile</Link>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <i className="fa fa-sign-out"></i>
+                                                <Link to="/login">Logout</Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
