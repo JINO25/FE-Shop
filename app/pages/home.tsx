@@ -25,7 +25,7 @@ export function HomeShop() {
                             <div className="hero__search__form">
                                 <form action="#">
                                     <input type="text" placeholder="What do yo u need?" />
-                                    <button type="submit" className="site-btn">SEARCH</button>
+                                    <button type="submit" className="site-btn hover:opacity-75 transition-opacity">SEARCH</button>
                                 </form>
                             </div>
                         </div>
