@@ -12,6 +12,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./style.css"
 import "./app.css";
 import { CartProvider } from "./contexts/CartContext";
+import { AuthContextProvider } from "./contexts/AutheContext";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -40,9 +41,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <CartProvider>
-          {children}
-        </CartProvider>
+        <AuthContextProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthContextProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

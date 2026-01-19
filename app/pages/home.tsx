@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ChatFloating from "~/components/chat/chat_floating";
 import { Product_Item } from "~/components/product-item";
 import { Sidebar } from "~/components/sidebar";
 // import "../style.css"
@@ -15,24 +16,26 @@ export function HomeShop() {
     // }, []);
 
     return (
-        <><section className="hero hero-normal">
-            <div className="container">
-                <div className="row">
-                    <div className="col-lg-3">
-                    </div>
-                    <div className="col-lg-9">
-                        <div className="hero__search">
-                            <div className="hero__search__form">
-                                <form action="#">
-                                    <input type="text" placeholder="What do yo u need?" />
-                                    <button type="submit" className="site-btn hover:opacity-75 transition-opacity">SEARCH</button>
-                                </form>
+        <>
+            <section className="hero hero-normal">
+                <div className="container">
+                    <div className="row">
+                        <div className="col-lg-3">
+                        </div>
+                        <div className="col-lg-9">
+                            <div className="hero__search">
+                                <div className="hero__search__form">
+                                    <form action="#">
+                                        <input type="text" placeholder="What do yo u need?" />
+                                        <button type="submit" className="site-btn hover:opacity-75 transition-opacity">SEARCH</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section><div className="container">
+            </section>
+            <div className="container">
                 <div className="row">
                     <div className="col-lg-3 col-md-5">
                         <Sidebar />
@@ -66,7 +69,9 @@ export function HomeShop() {
                         </div>
                     </div>
                 </div>
-            </div></>
+            </div>
+            <ChatFloating />
+        </>
 
     );
 }

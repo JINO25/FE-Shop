@@ -1,7 +1,86 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import API from "~/constants/api";
+import { useAuth } from "~/contexts/AutheContext";
 
 export const Login = () => {
     const [isRightPanelActive, setIsRightPanelActive] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const [signupName, setSignupName] = useState("");
+    const [signupEmail, setSignupEmail] = useState("");
+    const [signupPassword, setSignupPassword] = useState("");
+
+    const [signupError, setSignupError] = useState("");
+    const [signupSuccess, setSignupSuccess] = useState("");
+
+
+    const navigate = useNavigate();
+    const { refreshAuth } = useAuth();
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+
+        try {
+            const res = await fetch(API.AUTH.LOGIN, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error("Email hoặc mật khẩu không đúng");
+            }
+
+            await refreshAuth();
+
+            navigate("/");
+        } catch (err: any) {
+            setError(err.message || "Login failed");
+        }
+    };
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSignupError("");
+        setSignupSuccess("");
+
+        try {
+            const res = await fetch(API.AUTH.REGISTER, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: signupName,
+                    email: signupEmail,
+                    password: signupPassword,
+                }),
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                throw new Error(msg || "Email đã tồn tại");
+            }
+
+            setSignupSuccess("Đăng ký thành công! Vui lòng đăng nhập.");
+            setSignupName("");
+            setSignupEmail("");
+            setSignupPassword("");
+
+            setTimeout(() => {
+                setIsRightPanelActive(false);
+            }, 1000);
+        } catch (err: any) {
+            setSignupError(err.message);
+        }
+    };
+
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f6f5f7] font-[Montserrat,sans-serif]">
@@ -16,7 +95,7 @@ export const Login = () => {
                         : "opacity-0 z-0"
                         }`}
                 >
-                    <form className="bg-white flex flex-col items-center justify-center px-12 h-full text-center">
+                    <form onSubmit={handleSignup} className="bg-white flex flex-col items-center justify-center px-12 h-full text-center">
                         <h1 className="font-bold text-l">Create Account</h1>
                         <div className="flex justify-center">
                             <a
@@ -44,16 +123,22 @@ export const Login = () => {
                         <input
                             type="text"
                             placeholder="Name"
+                            value={signupName}
+                            onChange={(e) => setSignupName(e.target.value)}
                             className="bg-gray-200 p-3 my-2 w-full"
                         />
                         <input
                             type="email"
                             placeholder="Email"
+                            value={signupEmail}
+                            onChange={(e) => setSignupEmail(e.target.value)}
                             className="bg-gray-200 p-3 my-2 w-full"
                         />
                         <input
                             type="password"
                             placeholder="Password"
+                            value={signupPassword}
+                            onChange={(e) => setSignupPassword(e.target.value)}
                             className="bg-gray-200 p-3 my-2 w-full"
                         />
                         <button className="rounded-full border border-[#FF4B2B] bg-[#FF4B2B] text-white text-xs font-bold px-12 py-3 uppercase tracking-wider mt-4 hover:scale-95 transition-transform">
@@ -69,7 +154,9 @@ export const Login = () => {
                         : "opacity-100 z-10"
                         }`}
                 >
-                    <form className="bg-white flex flex-col items-center justify-center px-12 h-full text-center">
+                    <form
+                        onSubmit={handleLogin}
+                        className="bg-white flex flex-col items-center justify-center px-12 h-full text-center">
                         <h1 className="font-bold text-xl">Sign in</h1>
                         <div className="flex justify-center my-5">
                             <a
@@ -95,19 +182,29 @@ export const Login = () => {
                         <input
                             type="email"
                             placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="bg-gray-200 p-3 my-2 w-full"
                         />
                         <input
                             type="password"
                             placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             className="bg-gray-200 p-3 my-2 w-full"
                         />
                         <a href="#" className="text-sm text-gray-600 my-2">
                             Forgot your password?
                         </a>
-                        <button className="rounded-full border border-[#FF4B2B] bg-[#FF4B2B] text-white text-xs font-bold px-12 py-3 uppercase tracking-wider mt-4 hover:scale-95 transition-transform">
+                        <button
+                            type="submit"
+                            className="rounded-full border border-[#FF4B2B] bg-[#FF4B2B] text-white text-xs font-bold px-12 py-3 uppercase tracking-wider mt-4 hover:scale-95 transition-transform">
                             Sign In
                         </button>
+                        {error && (
+                            <p className="text-red-500 text-sm mt-2">{error}</p>
+                        )}
+
                     </form>
                 </div>
 

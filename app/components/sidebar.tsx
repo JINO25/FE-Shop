@@ -45,18 +45,24 @@ export const Sidebar = () => {
                             <div
                                 {...props}
                                 className="h-2 bg-gray-300 rounded-full cursor-pointer"
-                                style={{ width: "100%" }}
+                                style={{ ...props.style, width: "100%" }}
                             >
                                 {children}
                             </div>
                         )}
-                        renderThumb={({ props }) => (
-                            <div
-                                {...props}
-                                className="w-4 h-4 bg-green-500 rounded-full shadow cursor-pointer"
-                            />
-                        )}
+                        renderThumb={({ props }) => {
+                            const { key, ...rest } = props;
+
+                            return (
+                                <div
+                                    key={key}
+                                    {...rest}
+                                    className="w-4 h-4 bg-green-500 rounded-full shadow cursor-pointer"
+                                />
+                            );
+                        }}
                     />
+
                     <div className="flex justify-between mt-2">
                         <input
                             type="text"

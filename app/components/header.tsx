@@ -2,6 +2,8 @@ import React from "react";
 // import "../style.css"
 import { Link, NavLink } from "react-router";
 import { useCart } from "../contexts/CartContext";
+import { useAuth } from "~/contexts/AutheContext";
+import API from "~/constants/api";
 
 export const Header = () => {
 
@@ -9,6 +11,9 @@ export const Header = () => {
     // const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
     const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
     const totalProduct = cartItems.length
+
+    const { user, logout } = useAuth();
+    console.log("HEADER USER:", user);
 
     return (
         <header className="header">
@@ -116,24 +121,49 @@ export const Header = () => {
                                 </li>
                             </ul>
                             <div className="header__auth">
-                                {/* <NavLink to="/login" className="text-decoration-none">
-                                    <i className="fa fa-user"></i> Login</NavLink> */}
-                                <div className="flex items-center gap-2 relative group">
-                                    <img src="/images/shop-logo.jpeg" alt="user-logo"
-                                        className="w-[20px] h-[20px] object-cover" />
-                                    <span>Jino</span>
-                                    <div className="absolute right-0 top-full bg-white border rounded-md shadow-lg hidden group-hover:block z-50">
-                                        <div className="p-4 space-y-4 no-underline">
-                                            <div className="flex items-center gap-2">
-                                                <i className="fa fa-user"></i>
-                                                <Link to="/profile">Profile</Link>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <i className="fa fa-sign-out"></i>
-                                                <Link to="/login">Logout</Link>
+                                <div className="header__auth">
+                                    {!user ? (
+                                        <NavLink to="/login" className="text-decoration-none">
+                                            <i className="fa fa-user"></i> Login
+                                        </NavLink>
+                                    ) : (
+                                        <div className="flex items-center gap-2 relative group cursor-pointer">
+                                            <img
+                                                src={user.avatar}
+                                                alt="avatar"
+                                                className="w-[28px] h-[28px] rounded-full object-cover"
+                                            />
+                                            <span className="text-sm font-medium">{user.name}</span>
+
+                                            <div
+                                                className="absolute right-0 top-full bg-white border rounded-md shadow-lg 
+                   hidden group-hover:block z-50 min-w-[150px]"
+                                            >
+                                                <div className="p-3 space-y-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <i className="fa fa-user"></i>
+                                                        <Link to="/profile">Profile</Link>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <i className="fa fa-cart-plus"></i>
+                                                        <Link to="/order">Order</Link>
+                                                    </div>
+
+                                                    <div
+                                                        onClick={async () => {
+                                                            await logout();
+                                                        }
+                                                        }
+                                                        className="flex items-center gap-2 text-red-500 cursor-pointer"
+                                                    >
+                                                        <i className="fa fa-sign-out"></i>
+                                                        Logout
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
