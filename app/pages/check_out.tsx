@@ -135,7 +135,7 @@ const CheckOutProduct = () => {
 
                     <div className="grid grid-cols-5 items-center text-[rgba(0,0,0,0.54)] text-sm mb-10">
                         <div className="font-bold text-xl text-black">Sản Phẩm</div>
-                        <div></div>
+                        <div>Loại</div>
                         <div>Đơn giá</div>
                         <div>Số lượng</div>
                         <div>Thành tiền</div>
@@ -150,13 +150,17 @@ const CheckOutProduct = () => {
 
                             <div className="flex items-center gap-2">
                                 <img
-                                    src={item.product?.images?.[0]}
+                                    src={item.product?.images?.[0] ?? item.product?.image}
                                     width={50}
                                 />
                                 <span>{item.product?.name}</span>
                             </div>
 
-                            <div>{item.variant?.name}</div>
+                            <div>
+                                {item.variant?.option
+                                    ? `${item.variant.option} ${item.variant.color ?? ""}`
+                                    : item.variant?.type}
+                            </div>
 
                             <div>
                                 {item.variant?.price.toLocaleString("vi-VN")} đ

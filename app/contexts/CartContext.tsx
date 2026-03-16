@@ -1,58 +1,129 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { addItemToCart, clearCart, getUserCart, removeCartItem, updateCartItem } from "~/services/cartService";
 
 export type CartItem = {
     id: number;
     name: string;
     price: number;
+    variant: number;
+    type: string;
     image: string;
     quantity: number;
 };
 
+type AddCartPayload = {
+    productVariantId: number;
+    quantity: number;
+};
+
 type CartContextType = {
+    totalItems: number;
+    totalPrice: number;
     cartItems: CartItem[];
-    addToCart: (item: CartItem) => void;
-    removeFromCart: (id: number) => void;
-    updateQuantity: (id: number, quantity: number) => void;
+    addToCart: (item: AddCartPayload) => Promise<void>;
+    removeFromCart: (id: number) => Promise<void>;
+    updateQuantity: (id: number, quantity: number) => Promise<void>;
+    clearAllItemCart: () => Promise<void>
 };
 
 const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-    const [cartItems, setCartItems] = useState<CartItem[]>([
-        { id: 1, name: "Product 1", image: "/images/product.jpg", price: 190, quantity: 2 },
-        { id: 2, name: "Product 2", image: "/images/product.jpg", price: 120, quantity: 1 },
-        { id: 3, name: "Product 3", image: "/images/product.jpg", price: 90, quantity: 3 },
-    ]);
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-    const addToCart = (item: CartItem) => {
-        setCartItems((prev) => {
-            const existed = prev.find((i) => i.id === item.id);
-            if (existed) {
-                return prev.map((i) =>
-                    i.id === item.id
-                        ? { ...i, quantity: i.quantity + item.quantity }
-                        : i
-                );
-            }
-            return [...prev, item];
-        });
+    const fetchCart = async () => {
+        try {
+            const data = await getUserCart();
+
+            const items = data[0]?.cartItems?.map((item: any) => ({
+                id: item.id,
+                name: item.productVariantCartDTO.productName,
+                variant: item.productVariantCartDTO.id,
+                price: item.productVariantCartDTO.price,
+                type: item.productVariantCartDTO.option + " " + item.productVariantCartDTO.color,
+                image: item.image ?? "",
+                quantity: item.quantity
+            })) ?? [];
+
+            setCartItems(items);
+
+        } catch (error) {
+            console.error("fetch cart error", error);
+        }
     };
 
-    const removeFromCart = (id: number) => {
-        setCartItems((prev) => prev.filter((i) => i.id !== id));
+    useEffect(() => {
+
+
+        fetchCart();
+    }, []);
+
+    const addToCart = async (data: AddCartPayload) => {
+        try {
+            await addItemToCart(data);
+
+            const cart = await getUserCart();
+            setCartItems(cart.items);
+            await fetchCart();
+        } catch (error) {
+            console.error("add cart error", error);
+        }
     };
 
-    const updateQuantity = (id: number, quantity: number) => {
-        setCartItems((prev) =>
-            prev.map((i) =>
-                i.id === id ? { ...i, quantity } : i
-            )
-        );
+    const removeFromCart = async (id: number) => {
+        try {
+            await removeCartItem(id);
+
+            setCartItems((prev) => prev.filter((i) => i.id !== id));
+        } catch (error) {
+            console.error("remove cart error", error);
+        }
     };
+
+    const updateQuantity = async (id: number, quantity: number) => {
+        try {
+            await updateCartItem(id, quantity);
+
+            setCartItems((prev) =>
+                prev.map((i) =>
+                    i.id === id ? { ...i, quantity } : i
+                )
+            );
+        } catch (error) {
+            console.error("update cart error", error);
+        }
+    };
+
+    const clearAllItemCart = async () => {
+        try {
+            await clearCart();
+            setCartItems([]);
+        } catch (error) {
+            console.error("clear cart error", error);
+        }
+    };
+
+    const totalItems = (cartItems ?? []).reduce(
+        (t, i) => t + 1,
+        0
+    );
+
+    const totalPrice = (cartItems ?? []).reduce(
+        (t, i) => t + i.price * i.quantity,
+        0
+    );
 
     return (
         <CartContext.Provider
-            value={{ cartItems, addToCart, removeFromCart, updateQuantity }}
+            value={{
+                cartItems,
+                addToCart,
+                removeFromCart,
+                updateQuantity,
+                clearAllItemCart,
+                totalItems,
+                totalPrice
+            }}
         >
             {children}
         </CartContext.Provider>

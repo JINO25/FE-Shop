@@ -1,18 +1,37 @@
 import React from "react";
 // import "../style.css"
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "~/contexts/AutheContext";
-import API from "~/constants/api";
 
 export const Header = () => {
 
-    const { cartItems, removeFromCart } = useCart();
-    // const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-    const totalProduct = cartItems.length
+    const { cartItems, removeFromCart, totalPrice, totalItems } = useCart();
+    const navigate = useNavigate();
 
     const { user, logout } = useAuth();
+
+    const handleBuy = () => {
+        console.log(cartItems);
+        const items = cartItems.map((item) => ({
+            product: {
+                name: item.name,
+                image: item.image
+            },
+            variant: {
+                type: item.type,
+                price: item.price
+            },
+            quantity: item.quantity
+        })
+        );
+
+        navigate("/checkout", {
+            state: {
+                items
+            }
+        });
+    }
 
     return (
         <header className="header">
@@ -49,7 +68,7 @@ export const Header = () => {
                                 <li><a href="#"><i className="fa fa-heart"></i> <span>1</span></a></li>
                                 <li className="relative group">
                                     <a href="#"><i className="fa fa-shopping-bag"></i>
-                                        <span>{totalProduct}</span>
+                                        <span>{totalItems}</span>
                                     </a>
                                     <div
                                         className="absolute right-0 top-full w-72
@@ -57,37 +76,38 @@ export const Header = () => {
                                         hidden group-hover:block z-50"
                                     >
                                         <div className="p-4 space-y-4">
-                                            {cartItems.length === 0 && (
+                                            {!cartItems?.length ? (
                                                 <p className="text-sm text-gray-500 text-center">
                                                     Cart is empty
                                                 </p>
-                                            )}
+                                            ) : (
+                                                cartItems.map((item) => (
+                                                    <div key={item.id} className="flex gap-3 items-start">
+                                                        <img
+                                                            src={item.image || "/images/image.png"}
+                                                            alt={item.name}
+                                                            className="w-14 h-14 object-cover border rounded"
+                                                        />
 
-                                            {cartItems.map((item) => (
-                                                <div key={item.id} className="flex gap-3 items-start">
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        className="w-14 h-14 object-cover border rounded"
-                                                    />
+                                                        <div className="flex-1 min-w-0">
+                                                            <h5 className="text-sm font-medium leading-snug line-clamp-2 truncate">
+                                                                {item.name}
+                                                            </h5>
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <h5 className="text-sm font-medium leading-snug line-clamp-2 truncate">
-                                                            {item.name}
-                                                        </h5>
-                                                        <span className="text-xs text-gray-500">
-                                                            {item.quantity} × ${item.price}
-                                                        </span>
+                                                            <span className="text-xs text-gray-500">
+                                                                {item.quantity} × ${item.price}
+                                                            </span>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => removeFromCart(item.id)}
+                                                            className="text-xs text-red-500 hover:underline"
+                                                        >
+                                                            Remove
+                                                        </button>
                                                     </div>
-
-                                                    <button
-                                                        onClick={() => removeFromCart(item.id)}
-                                                        className="text-xs text-red-500 hover:underline"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            ))}
+                                                ))
+                                            )}
                                         </div>
 
                                         <div className="border-t px-4 py-3">
@@ -98,22 +118,22 @@ export const Header = () => {
 
                                             <div className="flex gap-2">
                                                 <a
-                                                    href="#"
+                                                    href="/cart"
                                                     className="flex-1 text-center 
                                                     text-sm !no-underline border rounded py-2 
                                                     hover:bg-black hover:text-white transition-colors"
                                                 >
                                                     View cart
                                                 </a>
-                                                <a
-                                                    href="#"
+                                                <button
+                                                    onClick={handleBuy}
                                                     className="flex-1 text-center 
                                                     text-sm !no-underline
                                                     bg-black text-white rounded py-2
                                                     hover:!bg-white hover:!text-black transition-colors"
                                                 >
                                                     Checkout
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

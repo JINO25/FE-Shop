@@ -11,6 +11,7 @@ import "swiper/css/thumbs";
 import { DropDown } from '~/components/drop-down';
 import ReviewSection from '~/components/review';
 import { getProductByCategory, getProductById } from '~/services/productService';
+import { useCart } from '~/contexts/CartContext';
 
 export const ProductDetail = () => {
     const { id } = useParams();
@@ -22,6 +23,8 @@ export const ProductDetail = () => {
     const [product, setProduct] = useState<any>(null);
     const [category, setCategory] = useState("");
     const [productsRelated, setProductsRelated] = useState<any>([]);
+
+    const { addToCart } = useCart();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -160,6 +163,15 @@ export const ProductDetail = () => {
         });
     };
 
+    const handleAddItemCart = async () => {
+        const data = {
+            productVariantId: selectedVariant.id,
+            quantity: quantity
+        };
+
+        await addToCart(data);
+
+    }
 
     return (
         <><section className="product-details spad">
@@ -256,7 +268,9 @@ export const ProductDetail = () => {
                             </button>
 
                             <div className='w-[50%]'>
-                                <button className="w-[85%] bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg shadow">
+                                <button
+                                    className="w-[85%] bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg shadow"
+                                    onClick={handleAddItemCart}>
                                     <i className="fa fa-shopping-cart"></i>
                                 </button>
                             </div>
