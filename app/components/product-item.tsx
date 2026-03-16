@@ -1,16 +1,13 @@
 import { Link } from "react-router";
 
-export const Product_Item = () => {
+export const Product_Item = ({ product }: { product: any }) => {
     return (
         <div className="product__item hover:opacity-75 transition-opacity">
-            <Link
-                to="/product/1"
-                className="!no-underline block"
-            >
+            <Link to={"/product/" + product.id} className="!no-underline block">
                 <div
                     className="product__item__pic"
                     style={{
-                        backgroundImage: "url(/images/product.jpg)",
+                        backgroundImage: `url(${product.thumbnail || ""})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                     }}
@@ -18,8 +15,8 @@ export const Product_Item = () => {
 
                 <div className="product__item__text flex justify-around">
                     <div>
-                        <h6>Crab Pool Security</h6>
-                        <h5>$30.00</h5>
+                        <h6>{product.name}</h6>
+                        <h5>{product.minPrice} $</h5>
                     </div>
                 </div>
             </Link>

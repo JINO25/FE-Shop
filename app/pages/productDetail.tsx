@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { Product_Item } from '~/components/product-item';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Thumbs } from "swiper/modules";
@@ -10,19 +10,46 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import { DropDown } from '~/components/drop-down';
 import ReviewSection from '~/components/review';
+import { getProductByCategory, getProductById } from '~/services/productService';
 
 export const ProductDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const descr = 'description';
     const review = 'review';
     const [activeTab, setActiveTab] = useState("description");
     const [selectedVariant, setSelectedVariant] = useState<any>(null);
+    const [product, setProduct] = useState<any>(null);
+    const [category, setCategory] = useState("");
+    const [productsRelated, setProductsRelated] = useState<any>([]);
 
-    const variants = [
-        { id: 1, option: 'M', stock: 0 },
-        { id: 2, option: 'L', stock: 10 },
-        { id: 3, option: 'XL', stock: 5 },
-    ];
+    useEffect(() => {
+        const fetchProduct = async () => {
+            if (id) {
+                const data = await getProductById(Number(id));
+                setProduct(data);
+                setCategory(data.categoryName);
+                setSelectedVariant(data.variants[0]);
+            }
+        };
+
+        fetchProduct();
+    }, [id]);
+
+    useEffect(() => {
+        const fetchRelated = async () => {
+            if (category) {
+                const data = await getProductByCategory(category);
+                setProductsRelated(data);
+            }
+        };
+
+        fetchRelated();
+    }, [category]);
+
+
+    const variants = product?.variants || [];
+    const images = product?.images || [];
 
     const reviews = [
         {
@@ -92,16 +119,47 @@ export const ProductDetail = () => {
         return stars;
     }
 
-    const [quantity, setQuantity] = useState(1);
-    const [productsRelative, setProductsRelative] = useState(["1", "2", "3"]);
     const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
 
-    const images = [
-        "/images/product.jpg",
-        "/images/product.jpg",
-        "/images/product.jpg",
-        "/images/product.jpg",
-    ];
+    const [quantity, setQuantity] = useState(1);
+
+    const increase = () => {
+        setQuantity(prev => prev + 1);
+    };
+
+    const decrease = () => {
+        setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = Number(e.target.value);
+        if (isNaN(value) || value < 1) {
+            setQuantity(1);
+        } else {
+            setQuantity(value);
+        }
+    };
+
+    const stock = selectedVariant?.stock ?? 0;
+    const isOutOfStock = stock === 0;
+
+    const handleBuy = () => {
+        if (!selectedVariant) return;
+
+        localStorage.setItem("lastProductId", product.id);
+        navigate("/checkout", {
+            state: {
+                items: [
+                    {
+                        product,
+                        variant: selectedVariant,
+                        quantity
+                    }
+                ]
+            }
+        });
+    };
+
 
     return (
         <><section className="product-details spad">
@@ -116,7 +174,7 @@ export const ProductDetail = () => {
                                 thumbs={{ swiper: thumbsSwiper }}
                                 className="product__details__pic__item"
                             >
-                                {images.map((src, i) => (
+                                {images.map((src: string, i: number) => (
                                     <SwiperSlide key={i}>
                                         <img
                                             className="product__details__pic__item--large w-full h-[400px] object-cover rounded-xl"
@@ -136,7 +194,7 @@ export const ProductDetail = () => {
                                 watchSlidesProgress
                                 className="product__details__pic__slider mt-4"
                             >
-                                {images.map((src, i) => (
+                                {images.map((src: string, i: number) => (
                                     <SwiperSlide key={i}>
                                         <img
                                             src={src}
@@ -150,12 +208,12 @@ export const ProductDetail = () => {
                     </div>
                     <div className="col-lg-6 col-md-6">
                         <div className="product__details__text">
-                            <h3>Vetgetable’s Package</h3>
+                            <h3>{product?.name ?? "Name Product"}</h3>
                             <div className="product__details__rating">
                                 {renderStars(avgTotalStarsOfReviews)}
                                 <span>({avgTotalStarsOfReviews} {reviews.length} reviews)</span>
                             </div>
-                            <div className="product__details__price">$50.00</div>
+                            <div className="product__details__price">{selectedVariant?.price ?? "0"} $</div>
                             <div className="product__details__options">
                                 <DropDown
                                     variants={variants}
@@ -164,13 +222,39 @@ export const ProductDetail = () => {
                             </div>
 
                             <div className="product__details__quantity">
-                                <div className="quantity">
-                                    <div className="pro-qty">
-                                        <input type="text" placeholder='1' value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
-                                    </div>
+                                <div className="quantity flex items-center gap-2">
+                                    <button
+                                        onClick={decrease}
+                                        className="w-8 h-8 border rounded flex items-center justify-center hover:bg-gray-200"
+                                    >
+                                        -
+                                    </button>
+
+                                    <input
+                                        type="number"
+                                        value={quantity}
+                                        onChange={handleChange}
+                                        className="w-12 text-center border rounded"
+                                        min={1}
+                                    />
+
+                                    <button
+                                        onClick={increase}
+                                        className="w-8 h-8 border rounded flex items-center justify-center hover:bg-gray-200"
+                                    >
+                                        +
+                                    </button>
                                 </div>
                             </div>
-                            <button className="primary-btn">Buy</button>
+
+                            <button
+                                className={`primary-btn ${isOutOfStock ? "opacity-50 cursor-not-allowed" : "hover:opacity-75 transition-opacity"}`}
+                                disabled={isOutOfStock}
+                                onClick={handleBuy}
+                            >
+                                {isOutOfStock ? "Out of stock" : "Buy"}
+                            </button>
+
                             <div className='w-[50%]'>
                                 <button className="w-[85%] bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg shadow">
                                     <i className="fa fa-shopping-cart"></i>
@@ -215,7 +299,7 @@ export const ProductDetail = () => {
                                     <div className="tab-pane active" role="tabpanel">
                                         <div className="product__details__tab__desc">
                                             <h6>Products Information</h6>
-                                            <p>Information.</p>
+                                            <p>{product?.description ?? ""}.</p>
                                         </div>
                                     </div>
                                 )}
@@ -247,9 +331,9 @@ export const ProductDetail = () => {
                         </div>
                     </div>
                     <div className="row">
-                        {productsRelative.map((item, index) => (
-                            <div className="col-lg-4 col-md-6 col-sm-6">
-                                <Product_Item />
+                        {productsRelated.map((item: any, index: number) => (
+                            <div key={index} className="col-lg-4 col-md-6 col-sm-6">
+                                <Product_Item product={item} />
                             </div>
                         ))}
                     </div>

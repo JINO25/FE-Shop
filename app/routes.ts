@@ -7,7 +7,9 @@ export default [
         route("/checkout", "routes/check-out.tsx"),
         route("/cart", "routes/cart.tsx"),
         route("/profile", "routes/profile.tsx"),
-        route("/order", "routes/order.tsx")
+        route("/order", "routes/order.tsx"),
+        route("/payment-success", "routes/payment-success.tsx"),
+        route("/payment-failure", "routes/payment-failure.tsx")
     ]),
     route("login", "routes/login.tsx"),
     route("/.well-known/*", "routes/empty.tsx"),

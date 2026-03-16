@@ -1,34 +1,34 @@
 
 import React, { useEffect, useState } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import AddressSelector from '~/components/address';
 import CheckoutPayment from '~/components/check-out-payment';
 import VoucherSelector from '~/components/vourcher-item'
-
-
-type Voucher = {
-    id: number;
-    title: string;
-    desc: string;
-    expiry: string;
-    discount: number;
-    disabled?: boolean;
-};
-
-type Address = {
-    id: number;
-    name: string;
-    phone: string;
-    street: string;
-    district: string;
-    city: string;
-};
+import { getUserAddresses } from '~/services/addressService';
+import { createOrder, createStripeCheckout } from '~/services/orderService';
 
 const CheckOutProduct = () => {
-    const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const params = new URLSearchParams(window.location.search);
+    // items có thể từ Buy Now hoặc Cart
+    const items = location.state?.items || [];
+
+    const [selectedVoucher, setSelectedVoucher] = useState<any | null>(null);
     const [loading, setLoading] = useState(false);
-    const productPrice = 3000000;
+
+    const [addresses, setAddresses] = useState<any[]>([]);
+    const [selectedAddress, setSelectedAddress] = useState<any | null>(null);
+
     const discount = selectedVoucher ? selectedVoucher.discount : 0;
-    const total = productPrice - discount;
+
+    // tính tổng tiền sản phẩm
+    const productTotal = items.reduce(
+        (sum: number, item: any) => sum + item.variant.price * item.quantity,
+        0
+    );
+
+    const total = productTotal - discount;
 
     const vouchers = [
         {
@@ -48,48 +48,67 @@ const CheckOutProduct = () => {
         },
     ];
 
-    const addresses = [
-        {
-            id: 1,
-            name: "Cao Tien Dat",
-            phone: "0834023573",
-            street: "Khóm 5 huyện Trà Cú",
-            district: "Thị trấn Trà Cú",
-            city: "Tỉnh Trà Vinh"
-        }, {
-            id: 2,
-            name: "Cao Dat",
-            phone: "0834023573",
-            street: "Nguyễn Văn Cừ",
-            district: "Ninh Kiều",
-            city: "Cần Thơ",
-        }]
-
-    const [address, setAddresses] = useState<Address | null>(null);
-
     const handleCheckout = async (paymentMethod: string) => {
-        try {
-            setLoading(true); // hiệu ứng loading khi fetch API
-            // const res = await fetch("/api/orders", {
-            //     method: "POST",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: JSON.stringify({
-            //         address: addresses,
-            //         voucher: selectedVoucher,
-            //         paymentMethod,
-            //         total,
-            //     }),
-            // });
-            // const data = await res.json();
-            console.log(address, selectedVoucher, total, paymentMethod);
 
-            alert("Đặt hàng thành công!");
+        if (!selectedAddress) {
+            alert("Vui lòng chọn địa chỉ");
+            return;
+        }
+
+        try {
+
+            setLoading(true);
+
+            const payload = items.map((item: any) => ({
+                addressId: selectedAddress.id,
+                productVariantId: item.variant.id,
+                quantity: item.quantity
+            }));
+
+            if (paymentMethod === "COD") {
+
+                await createOrder(payload);
+
+                alert("Đặt hàng thành công!");
+                navigate("/");
+
+            }
+
+            if (paymentMethod === "STRIPE") {
+
+                const res = await createStripeCheckout(payload);
+
+                const checkoutUrl = res.checkoutUrl;
+
+                if (checkoutUrl) {
+                    window.location.href = checkoutUrl; // chuyển sang Stripe                    
+                }
+            }
         } catch (err) {
+
+            console.error(err);
             alert("Có lỗi khi đặt hàng");
+
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+
+        getUserAddresses()
+            .then((data) => {
+
+                setAddresses(data);
+
+                if (data.length > 0) {
+                    setSelectedAddress(data[0]);
+                }
+
+            })
+            .catch((err) => console.error(err));
+
+    }, []);
 
     if (loading) {
         return (
@@ -100,11 +119,20 @@ const CheckOutProduct = () => {
     }
 
     return (
+
         <div className='container'>
-            <AddressSelector addresses={addresses} onSelectAddress={setAddresses} />
+
+            <AddressSelector
+                addresses={addresses}
+                onSelectAddress={setSelectedAddress}
+            />
+
+            {/* Product List */}
 
             <div className="m-5 bg-[#F3F6FA] rounded-2xl shadow-sm">
+
                 <div className="p-4">
+
                     <div className="grid grid-cols-5 items-center text-[rgba(0,0,0,0.54)] text-sm mb-10">
                         <div className="font-bold text-xl text-black">Sản Phẩm</div>
                         <div></div>
@@ -113,31 +141,77 @@ const CheckOutProduct = () => {
                         <div>Thành tiền</div>
                     </div>
 
-                    <div className="grid grid-cols-5 items-center text-sm">
-                        <div className="flex items-center gap-2">
-                            <img src={"/images/product.jpg"} width={50} />
-                            <span>Giày Nike</span>
+                    {items.map((item: any, index: number) => (
+
+                        <div
+                            key={index}
+                            className="grid grid-cols-5 items-center text-sm mb-4"
+                        >
+
+                            <div className="flex items-center gap-2">
+                                <img
+                                    src={item.product?.images?.[0]}
+                                    width={50}
+                                />
+                                <span>{item.product?.name}</span>
+                            </div>
+
+                            <div>{item.variant?.name}</div>
+
+                            <div>
+                                {item.variant?.price.toLocaleString("vi-VN")} đ
+                            </div>
+
+                            <div>{item.quantity}</div>
+
+                            <div>
+                                {(item.variant.price * item.quantity)
+                                    .toLocaleString("vi-VN")} đ
+                            </div>
+
                         </div>
-                        <div>Màu tùm lum</div>
-                        <div>{(3000000).toLocaleString("vi-VN")} đ</div>
-                        <div>1</div>
-                        <div>{(3000000).toLocaleString("vi-VN")} đ</div>
-                    </div>
+
+                    ))}
+
                 </div>
+
                 <div className='p-4 flex justify-end border-dashed border-gray-400 border-t-[1px] mt-4 bg-[#d3d3d3]'>
+
                     <div>
-                        <span className='text-[rgba(0,0,0,0.54)]'>Tổng tiền (1 sản phẩm):</span>
-                        <span className='px-3 text-[#ee4d2d] font-bold'>{(3000000).toLocaleString("vi-VN")} đ</span>
+
+                        <span className='text-[rgba(0,0,0,0.54)]'>
+                            Tổng tiền ({items.length} sản phẩm):
+                        </span>
+
+                        <span className='px-3 text-[#ee4d2d] font-bold'>
+                            {productTotal.toLocaleString("vi-VN")} đ
+                        </span>
+
                     </div>
+
                 </div>
+
             </div>
 
-            <VoucherSelector vouchers={vouchers} onSelectVoucher={setSelectedVoucher} />
+            {/* Voucher */}
 
+            <VoucherSelector
+                vouchers={vouchers}
+                onSelectVoucher={setSelectedVoucher}
+            />
 
-            <CheckoutPayment selectedVoucher={selectedVoucher} discount={discount} total={total} handleCheckOut={handleCheckout} />
+            {/* Payment */}
+
+            <CheckoutPayment
+                selectedVoucher={selectedVoucher}
+                discount={discount}
+                total={total}
+                handleCheckOut={handleCheckout}
+            />
+
         </div>
-    )
-}
 
-export default CheckOutProduct
+    );
+};
+
+export default CheckOutProduct;

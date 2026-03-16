@@ -40,8 +40,8 @@ const CheckoutPayment = ({
                             type="radio"
                             name="payment"
                             value="cod"
-                            checked={paymentMethod === "cod"}
-                            onChange={() => setPaymentMethod("cod")}
+                            checked={paymentMethod === "COD"}
+                            onChange={() => setPaymentMethod("COD")}
                             className="h-5 w-5 text-[#ee4d2d] focus:ring-[#ee4d2d]"
                         />
                         <span className="font-medium text-gray-800">Thanh toán khi nhận hàng</span>
@@ -57,8 +57,8 @@ const CheckoutPayment = ({
                             type="radio"
                             name="payment"
                             value="stripe"
-                            checked={paymentMethod === "stripe"}
-                            onChange={() => setPaymentMethod("stripe")}
+                            checked={paymentMethod === "STRIPE"}
+                            onChange={() => setPaymentMethod("STRIPE")}
                             className="h-5 w-5 text-[#ee4d2d] focus:ring-[#ee4d2d]"
                         />
                         <span className="font-medium text-gray-800">Thanh toán qua Stripe</span>

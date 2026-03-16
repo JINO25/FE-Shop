@@ -13,7 +13,6 @@ export const Header = () => {
     const totalProduct = cartItems.length
 
     const { user, logout } = useAuth();
-    console.log("HEADER USER:", user);
 
     return (
         <header className="header">

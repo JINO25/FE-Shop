@@ -2,18 +2,18 @@ import React, { useEffect, useState } from "react";
 import ChatFloating from "~/components/chat/chat_floating";
 import { Product_Item } from "~/components/product-item";
 import { Sidebar } from "~/components/sidebar";
+import { getAllProducts } from "~/services/productService";
 // import "../style.css"
 
 export function HomeShop() {
-    const [products, setProducts] = useState(["1", "2", "3"]);
+    const [products, setProducts] = useState([]);
 
-    // useEffect(() => {
-    //     // ví dụ fetch từ API giả
-    //     fetch("https://fakestoreapi.com/products")
-    //         .then((res) => res.json())
-    //         .then((data) => setProducts(data)) // data có thể là 50 sản phẩm
-    //         .catch((err) => console.error(err));
-    // }, []);
+    useEffect(() => {
+        getAllProducts()
+            .then((data) => setProducts(data))
+            .catch((err) => console.error(err));
+    }, []);
+
 
     return (
         <>
@@ -63,7 +63,7 @@ export function HomeShop() {
 
                             {products.map((item, index) => (
                                 <div className="col-lg-4 col-md-6 col-sm-6" key={index}>
-                                    <Product_Item />
+                                    <Product_Item key={index} product={item} />
                                 </div>
                             ))}
                         </div>
